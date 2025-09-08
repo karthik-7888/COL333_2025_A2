@@ -14,20 +14,20 @@ Here are the instructions used to match ai or human players against each other.
 
 ### Human vs Human
 ```sh
-python final.py --mode hvh
+python gameEngine.py --mode hvh
 ```
 ### Human vs AI
 
 ```sh
-python final.py --mode hvai --circle best
+python gameEngine.py --mode hvai --circle best
 ```
 ### AI vs AI
 
 ```sh
-python final.py --mode aivai --circle best --square best
+python gameEngine.py --mode aivai --circle best --square best
 ```
 
 ### No GUI
 ```sh
-python final.py --mode aivai --circle best --square best --nogui
+python gameEngine.py --mode aivai --circle best --square best --nogui
 ```
