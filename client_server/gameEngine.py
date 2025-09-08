@@ -16,19 +16,23 @@ DEFAULT_COLS = 12
 CELL = 48
 MARGIN = 60
 FPS = 30
-TIME_PER_PLAYER = 10 * 60
+TIME_PER_PLAYER = 1 * 60  # Default 1 minute per player
 WIN_COUNT = 4
 
-# Colors
-BG = (30,30,30)
-BOARD_COLOR = (116,185,255)
-GRID_COLOR = (99,110,114)
-HIGHLIGHT = (46,213,115)
-CIRCLE_COLOR = (255,107,107)
-SQUARE_COLOR = (72,219,251)
-STONE_FILL = (245,246,250)
-RIVER_FILL = (60,140,200)
-TEXT_COLOR = (245,245,245)
+# Colors - Light yellow background color scheme
+BG = (255, 253, 240)  # Light yellow background
+BOARD_COLOR = (250, 248, 235)  # Light cream board color
+GRID_COLOR = (100, 110, 120)  # Darker gray for grid visibility
+HIGHLIGHT = (50, 150, 80)  # Green highlight
+CIRCLE_COLOR = (200, 60, 80)  # Red for circles
+SQUARE_COLOR = (60, 100, 200)  # Blue for squares
+STONE_FILL = (255, 255, 255)  # Pure white for stone centers
+RIVER_FILL_CIRCLE = (180, 70, 70)  # Red for circle rivers
+RIVER_FILL_SQUARE = (50, 80, 180)  # Blue for square rivers
+TEXT_COLOR = (40, 50, 60)  # Dark text for light background
+SELECTED_COLOR = (220, 140, 40)  # Orange for selection
+SCORE_AREA_COLOR = (150, 120, 180)  # Purple for score areas
+SHADOW_COLOR = (0, 0, 0, 40)  # Slightly darker shadow for light background
 
 # ---------------- Piece & Board Utilities ----------------
 def opponent(p):
@@ -237,7 +241,7 @@ def validate_and_apply_move(board:List[List[Optional[Piece]]],
             return False, "push pair invalid"
 
         board[py][px] = board[ty][tx]  # enemy goes to pushed_to
-        board[ty][tx] = board[fy][fx]  # mover goes into enemy’s cell
+        board[ty][tx] = board[fy][fx]  # mover goes into enemy's cell
         board[fy][fx] = None           # origin cleared
 
         mover = board[ty][tx]
@@ -354,18 +358,78 @@ def check_win(board:List[List[Optional[Piece]]], rows:int, cols:int, score_cols:
     return None
 
 # ---------------- ASCII for CLI ----------------
-def board_to_ascii(board:List[List[Optional[Piece]]], rows:int, cols:int) -> str:
-    rows_out=[]
+def board_to_ascii(board:List[List[Optional[Piece]]], rows:int, cols:int, score_cols:List[int]) -> str:
+    """Enhanced ASCII representation with better visualization."""
+    result = "\n" + "="*50 + "\n"
+    result += "🎮 RIVER AND STONES GAME 🎮\n"
+    result += "="*50 + "\n"
+    
+    # Print column numbers
+    col_header = "   "
+    for x in range(cols):
+        col_header += f"{x:2d} "
+    result += col_header + "\n"
+    
+    rows_out = []
+    top = top_score_row()
+    bot = bottom_score_row(rows)
+    
     for y in range(rows):
-        row=[]
+        row_str = f"{y:2d} "
+        
         for x in range(cols):
             p = board[y][x]
-            if not p: row.append(".")
+            
+            # Determine if this is a scoring cell
+            is_circle_score = (y == top) and (x in score_cols)
+            is_square_score = (y == bot) and (x in score_cols)
+            
+            if not p:
+                if is_circle_score:
+                    cell = "🔴"  # Circle scoring area
+                elif is_square_score:
+                    cell = "🔵"  # Square scoring area
+                else:
+                    cell = " ·"  # Empty cell
             else:
-                ch = "C" if p.owner=="circle" else "S"
-                row.append(ch.lower() if p.side=="river" else ch)
-        rows_out.append(" ".join(row))
-    return "\n".join(rows_out)
+                if p.owner == "circle":
+                    if p.side == "stone":
+                        cell = "⭕" if is_circle_score else "🔴"
+                    else:  # river
+                        if p.orientation == "horizontal":
+                            cell = "🔴↔"  # Red horizontal two-way arrow for circle
+                        else:
+                            cell = "🔴↕"  # Red vertical two-way arrow for circle
+                else:  # square
+                    if p.side == "stone":
+                        cell = "⬜" if is_square_score else "🔵"
+                    else:  # river
+                        if p.orientation == "horizontal":
+                            cell = "🔵↔"  # Blue horizontal two-way arrow for square
+                        else:
+                            cell = "🔵↕"  # Blue vertical two-way arrow for square
+            
+            row_str += f"{cell} "
+        
+        # Add row indicator for scoring rows
+        if y == top:
+            row_str += " ← Circle scores here"
+        elif y == bot:
+            row_str += " ← Square scores here"
+            
+        rows_out.append(row_str)
+    
+    result += "\n".join(rows_out)
+    
+    # Add legend
+    legend = "\n\nLEGEND:\n"
+    legend += "🔴 Circle stone  ⭕ Circle in score\n"
+    legend += "🔵 Square stone  ⬜ Square in score\n"
+    legend += "🔴↔ Circle horizontal rivers  🔴↕ Circle vertical rivers\n"
+    legend += "🔵↔ Square horizontal rivers  🔵↕ Square vertical rivers\n"
+    legend += "🔴🔵 Empty scoring areas\n"
+    
+    return result + legend
 
 # ---------------- GUI rendering & loop ----------------
 if pygame:
@@ -375,52 +439,160 @@ if pygame:
 
 def draw_board(screen, board, rows, cols, score_cols, selected, highlights, msg, timers, current):
     screen.fill(BG)
-    # background
-    board_rect = pygame.Rect(MARGIN-20, MARGIN-20, cols*CELL+40, rows*CELL+40)
-    pygame.draw.rect(screen, BOARD_COLOR, board_rect, border_radius=10)
-    # draw exact scoring cells (centered 4)
+    
+    # Draw background with gradient effect
+    board_rect = pygame.Rect(MARGIN-30, MARGIN-30, cols*CELL+60, rows*CELL+60)
+    pygame.draw.rect(screen, BOARD_COLOR, board_rect, border_radius=15)
+    
+    # Add subtle border
+    pygame.draw.rect(screen, GRID_COLOR, board_rect, 3, border_radius=15)
+    
+    # Draw scoring areas with subtle design
     top = top_score_row(); bot = bottom_score_row(rows)
+    
+    # Circle's scoring area (top) - subtle design
     for x in score_cols:
         r = pygame.Rect(MARGIN + x*CELL - CELL//2, MARGIN + top*CELL - CELL//2, CELL, CELL)
-        s = pygame.Surface((r.w, r.h), pygame.SRCALPHA); s.fill((*CIRCLE_COLOR,80)); screen.blit(s, r.topleft)
+        # Subtle background
+        s = pygame.Surface((r.w, r.h), pygame.SRCALPHA)
+        s.fill((*CIRCLE_COLOR, 20))
+        screen.blit(s, r.topleft)
+        # Subtle border
+        pygame.draw.rect(screen, CIRCLE_COLOR, r, 2, border_radius=8)
+    
+    # Square's scoring area (bottom) - subtle design
     for x in score_cols:
         r = pygame.Rect(MARGIN + x*CELL - CELL//2, MARGIN + bot*CELL - CELL//2, CELL, CELL)
-        s = pygame.Surface((r.w, r.h), pygame.SRCALPHA); s.fill((*SQUARE_COLOR,80)); screen.blit(s, r.topleft)
+        # Subtle background
+        s = pygame.Surface((r.w, r.h), pygame.SRCALPHA)
+        s.fill((*SQUARE_COLOR, 20))
+        screen.blit(s, r.topleft)
+        # Subtle border
+        pygame.draw.rect(screen, SQUARE_COLOR, r, 2, border_radius=8)
 
-    # grid points
+    # Draw subtle grid points
     for y in range(rows):
         for x in range(cols):
             cx = MARGIN + x*CELL; cy = MARGIN + y*CELL
+            # Smaller, subtle grid points
             pygame.draw.circle(screen, GRID_COLOR, (cx,cy), 3)
+            pygame.draw.circle(screen, BG, (cx,cy), 1)
 
-    # highlights
+    # Draw subtle highlights
     for hx,hy in highlights:
-        pygame.draw.circle(screen, HIGHLIGHT, (MARGIN + hx*CELL, MARGIN + hy*CELL), 18, 3)
+        center = (MARGIN + hx*CELL, MARGIN + hy*CELL)
+        # Subtle highlight ring
+        pygame.draw.circle(screen, HIGHLIGHT, center, 24, 2)
 
-    # draw pieces
+    # Draw subtle selection indicator
+    if selected:
+        sx, sy = selected
+        center = (MARGIN + sx*CELL, MARGIN + sy*CELL)
+        # Subtle selection ring
+        pygame.draw.circle(screen, SELECTED_COLOR, center, 26, 3)
+
+    # Draw pieces with larger white centers and subtle design
     for y in range(rows):
         for x in range(cols):
             p = board[y][x]
             if not p: continue
             cx = MARGIN + x*CELL; cy = MARGIN + y*CELL
             color = CIRCLE_COLOR if p.owner=="circle" else SQUARE_COLOR
-            pygame.draw.circle(screen, color, (cx,cy), CELL//2 - 6)
+            
+            # Subtle shadow effect
+            shadow_surf = pygame.Surface((CELL, CELL), pygame.SRCALPHA)
+            pygame.draw.circle(shadow_surf, SHADOW_COLOR, (CELL//2 + 1, CELL//2 + 1), CELL//2 - 4)
+            screen.blit(shadow_surf, (cx - CELL//2, cy - CELL//2))
+            
+            # Outer colored ring (thinner)
+            pygame.draw.circle(screen, color, (cx, cy), CELL//2 - 4, 3)
+            
+            # Larger white inner circle for all pieces
+            pygame.draw.circle(screen, STONE_FILL, (cx, cy), CELL//2 - 8)
+            
             if p.side == "stone":
-                pygame.draw.circle(screen, STONE_FILL, (cx,cy), CELL//2 - 14)
-                pygame.draw.circle(screen, color, (cx,cy), CELL//2 - 14, 2)
+                # Stone appearance with subtle colored border around larger white center
+                pygame.draw.circle(screen, color, (cx, cy), CELL//2 - 8, 2)
+                # Small center dot for stone identification
+                pygame.draw.circle(screen, color, (cx, cy), 3)
             else:
+                # River appearance - thin rivers inside the larger white circle
+                river_color = RIVER_FILL_CIRCLE if p.owner == "circle" else RIVER_FILL_SQUARE
+                
                 if p.orientation == "horizontal":
-                    pygame.draw.rect(screen, RIVER_FILL, (cx - (CELL//2 - 12), cy - 6, CELL - 24, 12), border_radius=6)
+                    # Thin horizontal river inside larger white circle
+                    river_width = 3  # Thinner river
+                    river_length = CELL - 20  # Fits inside larger white circle
+                    river_rect = pygame.Rect(cx - river_length//2, cy - river_width//2, river_length, river_width)
+                    pygame.draw.rect(screen, river_color, river_rect, border_radius=1)
+                    
+                    # Subtle flow direction indicators
+                    arrow_size = 2
+                    for i in range(2):
+                        arrow_x = cx - river_length//2 + 8 + i * (river_length - 16) // 1
+                        # Small arrow pointing right
+                        pygame.draw.polygon(screen, river_color, [
+                            (arrow_x, cy - arrow_size),
+                            (arrow_x + arrow_size, cy),
+                            (arrow_x, cy + arrow_size)
+                        ])
                 else:
-                    pygame.draw.rect(screen, RIVER_FILL, (cx - 6, cy - (CELL//2 - 12), 12, CELL - 24), border_radius=6)
+                    # Thin vertical river inside larger white circle
+                    river_width = 3  # Thinner river
+                    river_length = CELL - 20  # Fits inside larger white circle
+                    river_rect = pygame.Rect(cx - river_width//2, cy - river_length//2, river_width, river_length)
+                    pygame.draw.rect(screen, river_color, river_rect, border_radius=1)
+                    
+                    # Subtle flow direction indicators
+                    arrow_size = 2
+                    for i in range(2):
+                        arrow_y = cy - river_length//2 + 8 + i * (river_length - 16) // 1
+                        # Small arrow pointing down
+                        pygame.draw.polygon(screen, river_color, [
+                            (cx - arrow_size, arrow_y),
+                            (cx, arrow_y + arrow_size),
+                            (cx + arrow_size, arrow_y)
+                        ])
 
-    # message & timers
-    msg_surf = BIGFONT.render(msg, True, TEXT_COLOR)
-    screen.blit(msg_surf, (20, rows*CELL + MARGIN - 6))
+    # Improved message display with background
+    msg_bg_rect = pygame.Rect(10, rows*CELL + MARGIN + 10, screen.get_width()-20, 35)
+    pygame.draw.rect(screen, (0,0,0,150), msg_bg_rect, border_radius=5)
+    msg_surf = BIGFONT.render(msg, True, (255, 255, 255))  # White text
+    screen.blit(msg_surf, (20, rows*CELL + MARGIN + 18))
+    
+    # Improved timer display
+    timer_bg = pygame.Rect(10, 5, 250, 70)
+    pygame.draw.rect(screen, (0,0,0,150), timer_bg, border_radius=5)
+    
     t1 = FONT.render(f"Circle: {format_time(timers['circle'])}", True, CIRCLE_COLOR)
     t2 = FONT.render(f"Square: {format_time(timers['square'])}", True, SQUARE_COLOR)
-    turn = FONT.render(f"Turn: {current.title()}", True, TEXT_COLOR)
-    screen.blit(t1, (20, 10)); screen.blit(t2, (20, 30)); screen.blit(turn, (20, 50))
+    turn_color = CIRCLE_COLOR if current == "circle" else SQUARE_COLOR
+    turn = BIGFONT.render(f"Turn: {current.title()}", True, turn_color)
+    
+    screen.blit(t1, (20, 15))
+    screen.blit(t2, (20, 35))
+    screen.blit(turn, (20, 55))
+    
+    # Add game instructions in corner
+    instructions = [
+        "Controls:",
+        "M - Move mode",
+        "P - Push mode", 
+        "F - Flip (stone ↔ river)",
+        "R - Rotate river",
+        "ESC - Cancel",
+        "S - Save game"
+    ]
+    
+    inst_bg = pygame.Rect(screen.get_width()-180, 5, 170, len(instructions)*20 + 10)
+    pygame.draw.rect(screen, (0,0,0,120), inst_bg, border_radius=5)
+    
+    for i, instruction in enumerate(instructions):
+        color = (255, 255, 255)  # White text for all instructions
+        font = BIGFONT if i == 0 else FONT
+        inst_surf = font.render(instruction, True, color)
+        screen.blit(inst_surf, (screen.get_width()-175, 15 + i*20))
+    
     pygame.display.flip()
 
 def format_time(sec:float) -> str:
@@ -428,22 +600,25 @@ def format_time(sec:float) -> str:
     m = int(sec//60); s = int(sec%60)
     return f"{m:02d}:{s:02d}"
 
-def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Optional[str], rows:int, cols:int):
+def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Optional[str], rows:int, cols:int, time_per_player:float):
     if not pygame:
-        print("pygame not available; use --nogui")
+        print("❌ pygame not available; use --nogui")
         return
     score_cols = score_cols_for(cols)
-    # if load_file:
-    #     board, r_loaded, c_loaded = load_board_from_file(load_file)
-    #     rows, cols = r_loaded, c_loaded
-    # else:
     board = default_start_board(rows, cols)
-    screen = pygame.display.set_mode((cols*CELL + MARGIN*2, rows*CELL + MARGIN*2 + 80))
-    pygame.display.set_caption("Final Ultimate")
+    
+    # Create window with better size calculation
+    window_width = max(800, cols*CELL + MARGIN*2 + 200)  # Extra space for UI
+    window_height = max(600, rows*CELL + MARGIN*2 + 100)
+    
+    screen = pygame.display.set_mode((window_width, window_height))
+    pygame.display.set_caption(f"🎮 River and Stones - {mode.upper()} Mode")
+    
     clock = pygame.time.Clock()
     players = {"circle":"human","square":"human"}
     if mode == "hvai": players["square"]="ai"
     elif mode == "aivai": players = {"circle":"ai","square":"ai"}
+    
     # instantiate agents (they only receive board)
     agent_circle = get_agent("circle", circle_strategy)
     agent_square = get_agent("square", square_strategy)
@@ -451,12 +626,12 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
     if players["circle"]=="ai": agents["circle"] = agent_circle
     if players["square"]=="ai": agents["square"] = agent_square
 
-    timers = {"circle": TIME_PER_PLAYER, "square": TIME_PER_PLAYER}
+    timers = {"circle": time_per_player, "square": time_per_player}
     last = time.time()
     current = "circle"
     selected = None
     highlights = set()
-    msg = "Click piece to select. M:Move P:Push F:Flip R:Rotate. H/V for orientation in flip mode."
+    msg = "🎯 Select a piece and choose an action (M/P/F/R). Welcome to River and Stones!"
     action_mode = None
     winner = None
     push_stage = None
@@ -628,66 +803,87 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
             time.sleep(0.1)
 
 # ---------------- CLI interactive runner ----------------
-def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Optional[str], rows:int, cols:int):
+def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Optional[str], rows:int, cols:int, time_per_player:float):
     score_cols = score_cols_for(cols)
-    # if load_file:
-    #     board, r_loaded, c_loaded = load_board_from_file(load_file)
-    #     rows, cols = r_loaded, c_loaded
-    # else:
     board = default_start_board(rows, cols)
     agent_circle = get_agent("circle", circle_strategy)
     agent_square = get_agent("square", square_strategy)
     players = {"circle":"human","square":"human"}
     if mode=="hvai": players["square"]="ai"
     elif mode=="aivai": players={"circle":"ai","square":"ai"}
+    
     current="circle"; winner=None; turn=0
+    
+    print("🎮 Welcome to River and Stones! 🎮")
+    print(f"Mode: {mode.upper()}")
+    print(f"Circle: {circle_strategy}, Square: {square_strategy}")
+    
     while True:
-        # print("\nBoard:")
-        # print(board_to_ascii(board, rows, cols))
+        print(board_to_ascii(board, rows, cols, score_cols))
+        
         w = check_win(board, rows, cols, score_cols)
         if w:
-            print("Winner:", w); break
+            print(f"\n🎉 WINNER: {w.upper()} 🎉"); break
+            
+        print(f"\n{'='*30}")
+        print(f"Turn {turn + 1}: {current.upper()}'s move")
+        print(f"{'='*30}")
+        
         if players[current]=="ai":
+            print(f"🤖 AI {current} is thinking...")
             agent = agent_circle if current=="circle" else agent_square
             move = agent.choose(board, rows, cols, score_cols)
             if move is None:
-                print(f"AI {current} no moves; pass"); current = opponent(current); continue
+                print(f"AI {current} has no moves; pass"); 
+                current = opponent(current); continue
             ok,msg = validate_and_apply_move(board, move, current, rows, cols, score_cols)
-            print(f"AI {current} -> {move} : {msg}")
+            print(f"AI {current} -> {move}")
+            print(f"Result: {msg}")
             if not ok:
                 current = opponent(current); continue
         else:
-            s = input(f"{current} move JSON (or q): ").strip()
+            print("Commands:")
+            print("  Move: {'action':'move','from':[x,y],'to':[x,y]}")
+            print("  Push: {'action':'push','from':[x,y],'to':[x,y],'pushed_to':[x,y]}")
+            print("  Flip: {'action':'flip','from':[x,y],'orientation':'horizontal/vertical'}")
+            print("  Rotate: {'action':'rotate','from':[x,y]}")
+            print("  'q' to quit")
+            
+            s = input(f"\n{current} move JSON: ").strip()
             if s.lower()=="q": break
             try:
                 move = json.loads(s)
             except Exception as e:
-                print("Bad JSON:", e); continue
+                print(f"❌ Bad JSON: {e}"); continue
             ok,msg = validate_and_apply_move(board, move, current, rows, cols, score_cols)
-            print(msg)
+            print(f"Result: {msg}")
             if not ok: continue
+            
         current = opponent(current)
         turn += 1
         if turn > 2000:
-            print("Turn limit -> draw"); break
+            print("Turn limit reached -> draw"); break
+        
+        input("\nPress Enter to continue...")  # Pause for readability
 
 # ---------------- Entrypoint ----------------
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["hvh","hvai","aivai"], default="hvai")
-    ap.add_argument("--circle", choices=["random","best"], default="best")
-    ap.add_argument("--square", choices=["random","best"], default="random")
+    ap.add_argument("--circle", choices=["random","best","greedy","student"], default="best")
+    ap.add_argument("--square", choices=["random","best","greedy","student"], default="random")
     ap.add_argument("--load", default=None)
     ap.add_argument("--nogui", action="store_true")
+    ap.add_argument("--time", type=float, default=1.0, help="Time per player in minutes (default: 1.0)")
     args = ap.parse_args()
 
     rows = DEFAULT_ROWS; cols = DEFAULT_COLS
+    time_per_player = args.time * 60  # Convert minutes to seconds
 
     if args.nogui:
-        run_cli(args.mode, args.circle, args.square, args.load, rows, cols)
+        run_cli(args.mode, args.circle, args.square, args.load, rows, cols, time_per_player)
     else:
-        run_gui(args.mode, args.circle, args.square, args.load, rows, cols)
+        run_gui(args.mode, args.circle, args.square, args.load, rows, cols, time_per_player)
 
 if __name__=="__main__":
     main()
-
