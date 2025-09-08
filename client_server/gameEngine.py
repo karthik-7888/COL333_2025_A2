@@ -218,8 +218,8 @@ def validate_and_apply_move(board:List[List[Optional[Piece]]],
 
         if not (in_bounds(fx,fy,rows,cols) and in_bounds(tx,ty,rows,cols) and in_bounds(px,py,rows,cols)):
             return False, "oob"
-
-        if (is_opponent_score_cell(tx,ty,player,rows,cols,score_cols) or
+        pushed_player = board[ty][tx].owner if board[ty][tx] else None
+        if (is_opponent_score_cell(tx,ty,pushed_player,rows,cols,score_cols) or
             is_opponent_score_cell(px,py,player,rows,cols,score_cols)):
             return False, "push would enter opponent score cell"
 
@@ -602,7 +602,7 @@ def format_time(sec:float) -> str:
 
 def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Optional[str], rows:int, cols:int, time_per_player:float):
     if not pygame:
-        print("❌ pygame not available; use --nogui")
+        print("pygame not available; use --nogui")
         return
     score_cols = score_cols_for(cols)
     board = default_start_board(rows, cols)
@@ -631,7 +631,7 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
     current = "circle"
     selected = None
     highlights = set()
-    msg = "🎯 Select a piece and choose an action (M/P/F/R). Welcome to River and Stones!"
+    msg = "Select a piece and choose an action (M/P/F/R). Welcome to River and Stones!"
     action_mode = None
     winner = None
     push_stage = None
@@ -854,7 +854,7 @@ def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
             try:
                 move = json.loads(s)
             except Exception as e:
-                print(f"❌ Bad JSON: {e}"); continue
+                print(f"Bad JSON: {e}"); continue
             ok,msg = validate_and_apply_move(board, move, current, rows, cols, score_cols)
             print(f"Result: {msg}")
             if not ok: continue
