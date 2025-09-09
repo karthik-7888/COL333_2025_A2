@@ -711,8 +711,13 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
 
     clock = pygame.time.Clock()
     players = {"circle":"human","square":"human"}
-    if mode == "hvai": players["square"]="ai"
-    elif mode == "aivai": players = {"circle":"ai","square":"ai"}
+    # if mode == "hvai": players["square"]="ai"
+    # elif mode == "aivai": players = {"circle":"ai","square":"ai"}
+    if mode=="aivai": players={"circle":"ai","square":"ai"}
+    elif mode=="hvh": players={"circle":"human","square":"human"}
+    else:
+        if circle_strategy=="random": players={"circle":"ai","square":"human"}
+        else: players={"circle":"human","square":"ai"}
     
     # instantiate agents (they only receive board)
     agent_circle = get_agent("circle", circle_strategy)
@@ -980,8 +985,11 @@ def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
     agent_circle = get_agent("circle", circle_strategy)
     agent_square = get_agent("square", square_strategy)
     players = {"circle":"human","square":"human"}
-    if mode=="hvai": players["square"]="ai"
-    elif mode=="aivai": players={"circle":"ai","square":"ai"}
+    if mode=="aivai": players={"circle":"ai","square":"ai"}
+    elif mode=="hvh": players={"circle":"human","square":"human"}
+    else:
+        if circle_strategy=="random": players={"circle":"ai","square":"human"}
+        else: players={"circle":"human","square":"ai"}
     
     current="circle"; winner=None; turn=0
 
