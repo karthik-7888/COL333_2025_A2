@@ -19,15 +19,15 @@ python gameEngine.py --mode hvh
 ### Human vs AI
 
 ```sh
-python gameEngine.py --mode hvai --circle best
+python gameEngine.py --mode hvai --circle random
 ```
 ### AI vs AI
 
 ```sh
-python gameEngine.py --mode aivai --circle best --square best
+python gameEngine.py --mode aivai --circle random --square student
 ```
 
 ### No GUI
 ```sh
-python gameEngine.py --mode aivai --circle best --square best --nogui
+python gameEngine.py --mode aivai --circle random --square student --nogui
 ```
