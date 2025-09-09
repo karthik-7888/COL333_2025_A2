@@ -550,31 +550,7 @@ class RandomAgent(BaseAgent):
         return random.choice(moves)
 
 
-class GreedyAgent(BaseAgent):
-    """
-    Greedy agent that chooses the move leading to the best immediate board evaluation.
-    This is an example of a simple strategic agent.
-    """
-    
-    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
-        moves = self.generate_all_moves(board, rows, cols, score_cols)
-        if not moves:
-            return None
-        
-        best_move = None
-        best_score = float('-inf')
-        
-        for move in moves:
-            success, result = self.simulate_move(board, move, rows, cols, score_cols)
-            if not success:
-                continue
-            
-            score = self.evaluate_board(result, rows, cols, score_cols)
-            if score > best_score:
-                best_score = score
-                best_move = move
-        
-        return best_move if best_move is not None else random.choice(moves)
+
 
 # ==================== STUDENT AGENT IMPORT ====================
 
@@ -598,7 +574,7 @@ def get_agent(player: str, strategy: str) -> BaseAgent:
     
     Args:
         player: "circle" or "square"
-        strategy: Strategy name ("random", "greedy", "student", etc.)
+        strategy: Strategy name ("random", "student")
     
     Returns:
         Agent instance
@@ -607,9 +583,7 @@ def get_agent(player: str, strategy: str) -> BaseAgent:
     
     if strategy == "random":
         return RandomAgent(player)
-    elif strategy in ["best", "greedy"]:  # "best" for backward compatibility
-        return GreedyAgent(player)
     elif strategy == "student":
         return StudentAgent(player)
     else:
-        raise ValueError(f"Unknown strategy: {strategy}. Available: random, greedy, student")
+        raise ValueError(f"Unknown strategy: {strategy}. Available: random, student")
