@@ -2,8 +2,8 @@
 """
 River and Stones Game - AI Agent Framework
 
-This module provides the base framework for implementing AI agents for the River and Stones game.
-Students should implement their own agent by inheriting from the BaseAgent class.
+This module provides the base agent implementations and factory function.
+The student implementation is in student_agent.py for better organization.
 
 Game Rules Summary:
 - Two players: Circle (red) and Square (blue)
@@ -576,45 +576,19 @@ class GreedyAgent(BaseAgent):
         
         return best_move if best_move is not None else random.choice(moves)
 
-# ==================== STUDENT IMPLEMENTATION AREA ====================
+# ==================== STUDENT AGENT IMPORT ====================
 
-class StudentAgent(BaseAgent):
-    """
-    TODO: Implement your AI agent here!
+try:
+    from student_agent import StudentAgent
+except ImportError:
+    print("Warning: student_agent.py not found. Creating placeholder StudentAgent.")
     
-    """
-    
-    def __init__(self, player: str):
-        super().__init__(player)
-        # TODO: Add any initialization code here
-        pass
-    
-    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
-        """
-        TODO: Implement your move selection logic here!
+    class StudentAgent(BaseAgent):
+        """Placeholder StudentAgent - implement in student_agent.py"""
         
-        You have access to:
-        - self.player: Your player identifier ("circle" or "square")
-        - self.opponent: Opponent player identifier
-        - self.generate_all_moves(): Get all legal moves
-        - self.evaluate_board(): Basic board evaluation
-        - self.simulate_move(): Test moves on board copies
-        - All utility functions like agent_river_flow(), is_opponent_score_cell(), etc.
-        
-        Current implementation just chooses randomly - replace this with your AI!
-        """
-        moves = self.generate_all_moves(board, rows, cols, score_cols)
-        if not moves:
-            return None
-        
-        # TODO: Replace this random selection with your AI logic
-        return random.choice(moves)
-    
-    # TODO: Add your custom methods here
-    # Examples:
-    # def minimax(self, board, depth, alpha, beta, maximizing_player):
-    # def monte_carlo_search(self, board, iterations):
-    # def custom_evaluation(self, board):
+        def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
+            moves = self.generate_all_moves(board, rows, cols, score_cols)
+            return random.choice(moves) if moves else None
 
 # ==================== AGENT FACTORY ====================
 
