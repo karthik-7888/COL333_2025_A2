@@ -315,8 +315,8 @@ def validate_and_apply_move(board:List[List[Optional[Piece]]],
         if not (in_bounds(fx,fy,rows,cols) and in_bounds(tx,ty,rows,cols) and in_bounds(px,py,rows,cols)):
             return False, "oob"
         pushed_player = board[ty][tx].owner if board[ty][tx] else None
-        if (is_opponent_score_cell(tx,ty,pushed_player,rows,cols,score_cols) or
-            is_opponent_score_cell(px,py,player,rows,cols,score_cols)):
+        if (is_opponent_score_cell(tx,ty,player,rows,cols,score_cols) or
+            is_opponent_score_cell(px,py,pushed_player,rows,cols,score_cols)):
             return False, "push would enter opponent score cell"
 
         piece = board[fy][fx]
