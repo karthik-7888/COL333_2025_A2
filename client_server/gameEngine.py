@@ -119,6 +119,8 @@ def count_reachable_in_one(board:List[List[Optional[Piece]]],
     for y,row in enumerate(board):
         for x,p in enumerate(row):
             if p and p.owner == player and p.side == "stone":
+                if is_own_score_cell(x, y, player, rows, cols, score_cols):
+                    continue
                 info = compute_valid_targets(board, x, y, player, rows, cols, score_cols)
                 # moves is a set of (tx,ty)
                 for (tx,ty) in info.get('moves', set()):
