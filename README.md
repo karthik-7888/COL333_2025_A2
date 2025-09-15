@@ -8,6 +8,9 @@ This is a course assignment for the graduate-level Artificial Intelligence cours
 ## Rules
 You can find the documentation to get all the rules of the game.
 
+## Updates
+[15-09-2025] Uploaded the sample files for the C++ users. Please checkout the [Read ME](./c++_sample_files\README.md) for further details. Seperate Submission details will be updated for C++ users.
+
 ## Dependencies
 - Python 3.9
 - Pygame

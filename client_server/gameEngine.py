@@ -1128,8 +1128,8 @@ def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["hvh","hvai","aivai"], default="hvai")
-    ap.add_argument("--circle", choices=["random","student"], default="random")
-    ap.add_argument("--square", choices=["random","student"], default="random")
+    ap.add_argument("--circle", choices=["random","student","student_cpp"], default="random")
+    ap.add_argument("--square", choices=["random","student","student_cpp"], default="random")
     ap.add_argument("--load", default=None)
     ap.add_argument("--nogui", action="store_true")
     ap.add_argument("--time", type=float, default=1.0, help="Time per player in minutes (default: 1.0)")

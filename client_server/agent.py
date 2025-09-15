@@ -585,5 +585,16 @@ def get_agent(player: str, strategy: str) -> BaseAgent:
         return RandomAgent(player)
     elif strategy == "student":
         return StudentAgent(player)
+    elif strategy == "student_cpp":
+        try:
+            import student_agent_cpp as student_agent
+            StudentAgentCpp = student_agent.StudentAgent
+        except ImportError:
+            StudentAgentCpp = None
+        if StudentAgentCpp:
+            return StudentAgentCpp(player)
+        else:
+            print("C++ StudentAgent not available. Falling back to Python StudentAgent.")
+            return StudentAgent(player)
     else:
         raise ValueError(f"Unknown strategy: {strategy}. Available: random, student")
