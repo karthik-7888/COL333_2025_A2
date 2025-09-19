@@ -398,7 +398,7 @@ class BaseAgent(ABC):
         self.opponent = get_opponent(player)
     
     @abstractmethod
-    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
+    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int], current_player_time: float, opponent_time: float) -> Optional[Dict[str, Any]]:
         """
         Choose the best move for the current board state.
         
@@ -406,6 +406,8 @@ class BaseAgent(ABC):
             board: 2D list representing the game board
             rows, cols: Board dimensions
             score_cols: List of column indices for scoring areas
+            current_player_time : Remaining time for this player (in seconds)
+            opponent_time : Remaining time for the opponent (in seconds)
         
         Returns:
             Dictionary representing the chosen move, or None if no moves available
@@ -543,7 +545,7 @@ class RandomAgent(BaseAgent):
     This serves as a baseline and example implementation.
     """
     
-    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
+    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int], current_player_time: float, opponent_time: float) -> Optional[Dict[str, Any]]:
         moves = self.generate_all_moves(board, rows, cols, score_cols)
         if not moves:
             return None
@@ -562,7 +564,7 @@ except ImportError:
     class StudentAgent(BaseAgent):
         """Placeholder StudentAgent - implement in student_agent.py"""
         
-        def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
+        def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int], current_player_time: float, opponent_time: float) -> Optional[Dict[str, Any]]:
             moves = self.generate_all_moves(board, rows, cols, score_cols)
             return random.choice(moves) if moves else None
 
