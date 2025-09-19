@@ -265,7 +265,7 @@ def compute_valid_targets(board:List[List[Optional[Piece]]],
             # stone occupied
             if p.side == "stone":
                 px,py = tx+dx, ty+dy
-                if in_bounds(px,py,rows,cols) and board[py][px] is None and not is_opponent_score_cell(px,py,player,rows,cols,score_cols):
+                if in_bounds(px,py,rows,cols) and board[py][px] is None and not is_opponent_score_cell(px,py,p.owner,rows,cols,score_cols):
                     pushes.append(((tx,ty),(px,py)))
             else:
                 pushed_player = target.owner
@@ -417,26 +417,46 @@ def generate_all_moves(board:List[List[Optional[Piece]]],
                     if board[ny][nx] is None:
                         moves.append({"action":"move","from":[x,y],"to":[nx,ny]})
                     else:
-                        if board[ny][nx].owner != player:
+                        target = board[ny][nx]
+                        if target.side == "river":
+                            # moves that flow through the river
+                            flow = get_river_flow_destinations(board, nx, ny, x, y, player, rows, cols, score_cols)
+                            for d in flow:
+                                moves.append({"action":"move","from":[x,y],"to":d})
+                        else:
+                            # moves to push the stone pieces (can push self and opponent pieces both)
                             px,py = nx+dx, ny+dy
-                            if in_bounds(px,py,rows,cols) and board[py][px] is None and not is_opponent_score_cell(px,py,player,rows,cols,score_cols):
+                            if in_bounds(px,py,rows,cols) and board[py][px] is None and not is_opponent_score_cell(px,py,target.owner,rows,cols,score_cols):
                                 moves.append({"action":"push","from":[x,y],"to":[nx,ny],"pushed_to":[px,py]})
-                # flips: only add flips that are safe (flow won't reach opponent score)
+                # flips
                 for ori in ("horizontal","vertical"):
                     p.side="river"; p.orientation=ori
-                    flow = get_river_flow_destinations(board, x, y, x, y, player, rows, cols, score_cols)
-                    p.side="stone"; p.orientation=None
-                    if not any(is_opponent_score_cell(dx,dy,player,rows,cols,score_cols) for dx,dy in flow):
-                        moves.append({"action":"flip","from":[x,y],"orientation":ori})
+                    moves.append({"action":"flip","from":[x,y],"orientation":ori})
             else:
+                for dx,dy in dirs:
+                    nx,ny = x+dx,y+dy
+                    if not in_bounds(nx,ny,rows,cols): continue
+                    if is_opponent_score_cell(nx,ny,player,rows,cols,score_cols): continue
+                    if board[ny][nx] is None:
+                        moves.append({"action":"move","from":[x,y],"to":[nx,ny]})
+                    else:
+                        target = board[ny][nx]
+                        if target.side == "river":
+                            # moves that flow through the river
+                            flow = get_river_flow_destinations(board, nx, ny, x, y, player, rows, cols, score_cols)
+                            for d in flow:
+                                moves.append({"action":"move","from":[x,y],"to":d})
+                        else:
+                            # moves to push the stone pieces (can push self and opponent pieces both)
+                            px,py = nx+dx, ny+dy
+                            if in_bounds(px,py,rows,cols) and board[py][px] is None and not is_opponent_score_cell(px,py,target.owner,rows,cols,score_cols):
+                                moves.append({"action":"push","from":[x,y],"to":[nx,ny],"pushed_to":[px,py]})
+                # flip to stone side
                 moves.append({"action":"flip","from":[x,y]})
-                # rotate if safe
+                # rotate
                 new_ori = "vertical" if p.orientation=="horizontal" else "horizontal"
                 p.orientation = new_ori
-                flow = get_river_flow_destinations(board, x, y, x, y, player, rows, cols, score_cols)
-                p.orientation = "horizontal" if new_ori=="vertical" else "vertical"
-                if not any(is_opponent_score_cell(dx,dy,player,rows,cols,score_cols) for dx,dy in flow):
-                    moves.append({"action":"rotate","from":[x,y]})
+                moves.append({"action":"rotate","from":[x,y]})
     return moves
 
 # ---------------- Win check ----------------
