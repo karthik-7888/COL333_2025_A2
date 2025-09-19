@@ -49,7 +49,7 @@ class StudentAgent {
 public:
     explicit StudentAgent(std::string side) : side(std::move(side)), gen(rd()) {}
 
-    Move choose(const std::vector<std::vector<std::map<std::string, std::string>>>& board, int row, int col, const std::vector<int>& score_cols) {
+    Move choose(const std::vector<std::vector<std::map<std::string, std::string>>>& board, int row, int col, const std::vector<int>& score_cols, float current_player_time, float opponent_time) {
         int rows = board.size();
         int cols = board[0].size();
 

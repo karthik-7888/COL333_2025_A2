@@ -48,7 +48,7 @@ class BaseAgent(ABC):
         self.opponent = get_opponent(player)
     
     @abstractmethod
-    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
+    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int], current_player_time: float, opponent_time: float) -> Optional[Dict[str, Any]]:
         pass
 
 class StudentAgent(BaseAgent):
@@ -57,7 +57,7 @@ class StudentAgent(BaseAgent):
 
         self.agent = student_agent.StudentAgent(player)
 
-    def choose(self, game_state: dict,  rows: int, cols: int, score_cols: List[int]):
+    def choose(self, game_state: dict,  rows: int, cols: int, score_cols: List[int], current_player_time: float, opponent_time: float) -> Optional[Dict[str, Any]]:
         board = game_state["board"]
         print(board)
         cpp_move = self.agent.choose(board, rows, cols, score_cols)
@@ -92,7 +92,7 @@ def test_student_agent():
         board = default_start_board(rows, cols)
         
         agent = StudentAgent("circle")
-        move = agent.choose(board, rows, cols, score_cols)
+        move = agent.choose(board, rows, cols, score_cols,1.0,1.0)
         
         if move:
             print("Agent successfully generated a move")

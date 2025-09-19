@@ -227,7 +227,7 @@ class BaseAgent(ABC):
         self.opponent = get_opponent(player)
     
     @abstractmethod
-    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
+    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int], current_player_time: float, opponent_time: float) -> Optional[Dict[str, Any]]:
         """
         Choose the best move for the current board state.
         
@@ -261,7 +261,7 @@ class StudentAgent(BaseAgent):
         super().__init__(player)
         # TODO: Add any initialization you need
     
-    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int]) -> Optional[Dict[str, Any]]:
+    def choose(self, board: List[List[Any]], rows: int, cols: int, score_cols: List[int], current_player_time: float, opponent_time: float) -> Optional[Dict[str, Any]]:
         """
         Choose the best move for the current board state.
         
@@ -297,7 +297,7 @@ def test_student_agent():
         board = default_start_board(rows, cols)
         
         agent = StudentAgent("circle")
-        move = agent.choose(board, rows, cols, score_cols)
+        move = agent.choose(board, rows, cols, score_cols,1.0,1.0)
         
         if move:
             print("✓ Agent successfully generated a move")

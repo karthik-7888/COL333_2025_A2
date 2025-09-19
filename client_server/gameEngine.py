@@ -786,7 +786,7 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
         if players[current] == "ai" and not winner and not game_over:
             ai_start = time.time()
             agent = agents[current]
-            move = agent.choose(board, rows, cols, score_cols)
+            move = agent.choose(board, rows, cols, score_cols, timers[current], timers[opponent(current)])
             ai_end = time.time()
             ai_elapsed = ai_end - ai_start
             timers[current] -= ai_elapsed
@@ -1049,7 +1049,7 @@ def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
             print(f"🤖 AI {current} is thinking...")
             agent = agent_circle if current=="circle" else agent_square
             ai_start = time.time()  # ADDED: measure AI thinking time
-            move = agent.choose(board, rows, cols, score_cols)
+            move = agent.choose(board, rows, cols, score_cols, timers[current], timers[opponent(current)])
             ai_end = time.time()  # ADDED
             elapsed = ai_end - ai_start  # ADDED
             timers[current] -= elapsed  # ADDED: subtract AI think time from clock
