@@ -134,6 +134,10 @@ def count_reachable_in_one(board:List[List[Optional[Piece]]],
                         if is_own_score_cell(ptx, pty, player, rows, cols, score_cols):
                             m += 1
                             break
+            if p and p.owner == player and p.side == "river":
+                # if the river piece is in the scoring area already then can be flipped to get a stone in the scoring area
+                if is_own_score_cell(x, y, player, rows, cols, score_cols):
+                    m += 1
     return m
 
 def compute_final_scores(board:List[List[Optional[Piece]]],
