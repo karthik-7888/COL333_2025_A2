@@ -1068,8 +1068,8 @@ def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
                 print(f"AI {current} has no moves; pass")
                 current = opponent(current)
                 turn += 1
-                if turn > 2000:
-                    print("Turn limit reached -> draw"); break
+                # if turn > 2000:
+                #     print("Turn limit reached -> draw"); break
                 # do not count the "press enter to continue" as clock time; skip it
                 input("\nPress Enter to continue...")  # keep for readability
                 continue
@@ -1079,8 +1079,8 @@ def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
             if not ok:
                 current = opponent(current)
                 turn += 1
-                if turn > 2000:
-                    print("Turn limit reached -> draw"); break
+                # if turn > 2000:
+                #     print("Turn limit reached -> draw"); break
                 input("\nPress Enter to continue...")
                 continue
         else:
@@ -1130,8 +1130,8 @@ def run_cli(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
         # next player's turn
         current = opponent(current)
         turn += 1
-        if turn > 2000:
-            print("Turn limit reached -> draw"); break
+        # if turn > 2000:
+        #     print("Turn limit reached -> draw"); break
 
         # Press Enter pause for readability — DO NOT count this time as player's clock (unchanged behavior)
         try:
