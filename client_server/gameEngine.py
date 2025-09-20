@@ -728,6 +728,7 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
         return
     score_cols = score_cols_for(cols)
     board = default_start_board(rows, cols)
+    turn=0
 
     window_width = max(800, cols*CELL + MARGIN*2 + 200)
     window_height = max(600, rows*CELL + MARGIN*2 + 100)
@@ -813,6 +814,9 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
                     current = opponent(current)
                     turn_start = time.time()
             draw_board(screen, board, rows, cols, score_cols, selected, highlights, msg, timers, current)
+            turn += 1
+            if turn > 1000:
+                print("Turn limit reached -> draw"); break
             continue
 
         for ev in pygame.event.get():
@@ -988,6 +992,9 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
                                 msg=f"Selected {selected}"
                             else:
                                 msg="Invalid click"
+        turn += 1
+        if turn > 1000:
+            print("Turn limit reached -> draw"); break
 
         # --- DRAW ---
         draw_board(screen, board, rows, cols, score_cols, selected, highlights, msg, timers, current)
