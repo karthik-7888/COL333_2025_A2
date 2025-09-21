@@ -815,6 +815,7 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
                     turn_start = time.time()
             draw_board(screen, board, rows, cols, score_cols, selected, highlights, msg, timers, current)
             turn += 1
+            # print(turn)
             if turn > 1000:
                 print("Turn limit reached -> draw"); break
             continue
@@ -992,9 +993,10 @@ def run_gui(mode:str, circle_strategy:str, square_strategy:str, load_file:Option
                                 msg=f"Selected {selected}"
                             else:
                                 msg="Invalid click"
-        turn += 1
-        if turn > 1000:
-            print("Turn limit reached -> draw"); break
+        # turn += 1
+        # print(turn)
+        # if turn > 1000:
+        #     print("Turn limit reached -> draw"); break
 
         # --- DRAW ---
         draw_board(screen, board, rows, cols, score_cols, selected, highlights, msg, timers, current)
